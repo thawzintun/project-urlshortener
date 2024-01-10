@@ -75,14 +75,14 @@ app.post("/api/shorturl", async (req, res) => {
         });
 });
 
-app.get("/api/shorturl/:urlNumber", async (req, res) => {
-    const { urlNumber } = req.params;
-    if (urlNumber === 0) {
+app.get("/api/shorturl/:short_url", async (req, res) => {
+    const { short_url } = req.params;
+    if (short_url === 0) {
         return res.json({
             error: "Wrong format",
         });
     }
-    const data = await Url.findOne({ short_url: +urlNumber }).then((result) => {
+    const data = await Url.findOne({ short_url: +short_url }).then((result) => {
         if (!result) {
             return res.json({
                 error: "No short URL found for the given input",
