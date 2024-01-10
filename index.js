@@ -64,10 +64,7 @@ app.post("/api/shorturl", (req, res) => {
                 short_url: totalUrls + 1,
             };
             await Url.create(urlData);
-            return res.json({
-                original_url: new URL(url).origin,
-                short_url: totalUrls + 1,
-            });
+            res.json(urlData);
         });
     });
 });
@@ -85,7 +82,7 @@ app.get("/api/shorturl/:urlNumber", (req, res) => {
                 error: "No short URL found for the given input",
             });
         }
-        return res.redirect(result.original_url);
+        res.redirect(result.original_url);
     });
 });
 
