@@ -36,7 +36,7 @@ app.get("/api/hello", function (req, res) {
     res.json({ greeting: "hello API" });
 });
 
-app.post("/api/shorturl", (req, res) => {
+app.post("/api/shorturl", async (req, res) => {
     const { url } = req.body;
     let urlData;
     if ((!url.startsWith("http://") && !url.startsWith("https://")) || !url) {
@@ -44,13 +44,17 @@ app.post("/api/shorturl", (req, res) => {
             error: "Invalid URL",
         });
     }
-    Url.findOne({ original_url: new URL(url).origin }).then((result) => {
+    const oldData = await Url.findOne({
+        original_url: new URL(url).origin,
+    }).then((result) => {
         if (result) {
             return res.json({
                 original_url: result.original_url,
                 short_url: result.short_url,
             });
         }
+    });
+    !oldData &&
         dns.lookup(new URL(url).hostname, async (err, address, family) => {
             // console.log(err, address, family);
             if (err) {
@@ -64,26 +68,26 @@ app.post("/api/shorturl", (req, res) => {
                 short_url: totalUrls + 1,
             };
             await Url.create(urlData);
-            res.json(urlData);
+            return res.json(urlData);
         });
-    });
 });
 
-app.get("/api/shorturl/:urlNumber", (req, res) => {
+app.get("/api/shorturl/:urlNumber", async (req, res) => {
     const { urlNumber } = req.params;
     if (urlNumber === 0) {
         return res.json({
             error: "Wrong format",
         });
     }
-    Url.findOne({ short_url: urlNumber }).then((result) => {
+    const data = await Url.findOne({ short_url: urlNumber }).then((result) => {
         if (!result) {
             return res.json({
                 error: "No short URL found for the given input",
             });
         }
-        res.redirect(result.original_url);
+        return result;
     });
+    return res.redirect(data.original_url);
 });
 
 app.listen(port, function () {
