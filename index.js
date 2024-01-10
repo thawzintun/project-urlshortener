@@ -36,23 +36,6 @@ app.get("/api/hello", function (req, res) {
     res.json({ greeting: "hello API" });
 });
 
-app.get("/api/shorturl/:urlNumber", (req, res) => {
-    const { urlNumber } = req.params;
-    if (urlNumber === 0) {
-        return res.json({
-            error: "Wrong format",
-        });
-    }
-    Url.findOne({ short_url: urlNumber }).then((result) => {
-        if (!result) {
-            return res.json({
-                error: "No short URL found for the given input",
-            });
-        }
-        return res.redirect(result.original_url);
-    });
-});
-
 app.post("/api/shorturl", (req, res) => {
     const { url } = req.body;
     let urlData;
@@ -86,6 +69,23 @@ app.post("/api/shorturl", (req, res) => {
                 short_url: totalUrls + 1,
             });
         });
+    });
+});
+
+app.get("/api/shorturl/:urlNumber", (req, res) => {
+    const { urlNumber } = req.params;
+    if (urlNumber === 0) {
+        return res.json({
+            error: "Wrong format",
+        });
+    }
+    Url.findOne({ short_url: urlNumber }).then((result) => {
+        if (!result) {
+            return res.json({
+                error: "No short URL found for the given input",
+            });
+        }
+        return res.redirect(result.original_url);
     });
 });
 
