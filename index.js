@@ -80,8 +80,10 @@ app.post("/api/shorturl", (req, res) => {
                 original_url: new URL(url).origin,
                 short_url: totalUrls + 1,
             };
-            Url.create(urlData).then(() => {
-                return res.json(urlData);
+            Url.create(urlData);
+            return res.json({
+                original_url: new URL(url).origin,
+                short_url: totalUrls + 1,
             });
         });
     });
