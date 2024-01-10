@@ -38,59 +38,32 @@ app.get("/api/hello", function (req, res) {
 
 app.post("/api/shorturl", async (req, res) => {
     const { url } = req.body;
-    let urlData;
-    if ((!url.startsWith("http://") && !url.startsWith("https://")) || !url) {
-        return res.json({
-            error: "Invalid URL",
-        });
-    }
-    const oldData = await Url.findOne({
-        original_url: new URL(url).origin,
-    }).then((result) => {
-        if (result) {
-            return res.json({
-                original_url: result.original_url,
-                short_url: result.short_url,
-            });
-        }
-    });
-    !oldData &&
-        dns.lookup(new URL(url).hostname, async (err, address, family) => {
+    const dnsLookup = dns.lookup(
+        new URL(url).hostname,
+        async (err, address, family) => {
             // console.log(err, address, family);
-            if (err) {
-                return res.json({
-                    error: "Invalid Hostname",
+            if (!address) {
+                res.json({ error: "invalid url" });
+            } else {
+                const totalUrls = await Url.countDocuments({});
+                const urlData = {
+                    original_url: url,
+                    short_url: totalUrls,
+                };
+                const insertNew = await Url.create(urlData);
+                res.json({
+                    original_url: url,
+                    short_url: totalUrls,
                 });
             }
-            const totalUrls = await Url.countDocuments({});
-            urlData = {
-                original_url: new URL(url).origin,
-                short_url: totalUrls,
-            };
-            const insertNew = await Url.create(urlData);
-            res.json({
-                original_url: new URL(url).origin,
-                short_url: totalUrls,
-            });
-        });
+        }
+    );
 });
 
 app.get("/api/shorturl/:short_url", async (req, res) => {
     const { short_url } = req.params;
-    if (short_url === 0) {
-        return res.json({
-            error: "Wrong format",
-        });
-    }
-    const data = await Url.findOne({ short_url: +short_url }).then((result) => {
-        if (!result) {
-            return res.json({
-                error: "No short URL found for the given input",
-            });
-        }
-        return result;
-    });
-    return res.redirect(data.original_url);
+    const data = await Url.findOne({ short_url: +short_url });
+    res.redirect(data.original_url);
 });
 
 app.listen(port, function () {
