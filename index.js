@@ -65,10 +65,13 @@ app.post("/api/shorturl", async (req, res) => {
             const totalUrls = await Url.countDocuments({});
             urlData = {
                 original_url: new URL(url).origin,
-                short_url: totalUrls + 1,
+                short_url: totalUrls,
             };
-            await Url.create(urlData);
-            return res.json(urlData);
+            const insertNew = await Url.create(urlData);
+            res.json({
+                original_url: new URL(url).origin,
+                short_url: totalUrls,
+            });
         });
 });
 
@@ -79,7 +82,7 @@ app.get("/api/shorturl/:urlNumber", async (req, res) => {
             error: "Wrong format",
         });
     }
-    const data = await Url.findOne({ short_url: urlNumber }).then((result) => {
+    const data = await Url.findOne({ short_url: +urlNumber }).then((result) => {
         if (!result) {
             return res.json({
                 error: "No short URL found for the given input",
